@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Reference</title>
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        height: 100%;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const url = new URL(document.location.href);
+      const yamlUrl = url.searchParams.get('url');
+      Scalar.createApiReference("#app", {
+        url: yamlUrl,
+        theme: "default",
+        layout: "modern",
+        showSidebar: true,
+      });
+    </script>
+  </body>
+</html>
