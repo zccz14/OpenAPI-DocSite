@@ -17,19 +17,21 @@
   <body>
     <div id="app"></div>
     <script>
-      const url = new URL(document.location.href);
-      const specUrl = url.searchParams.get('url');
-      const spec = await fetch(specUrl).then(x => x.text());
-      console.info('Spec Loaded', spec);
-      // const serverUrl = url.searchParams.get('server');
-      
-      Scalar.createApiReference("#app", {
-        // url: specUrl,
-        content: spec,
-        theme: "default",
-        layout: "modern",
-        showSidebar: true,
-      });
+      (async function () {
+        const url = new URL(document.location.href);
+        const specUrl = url.searchParams.get('url');
+        const spec = await fetch(specUrl).then(x => x.text());
+        console.info('Spec Loaded', spec);
+        // const serverUrl = url.searchParams.get('server');
+        
+        Scalar.createApiReference("#app", {
+          // url: specUrl,
+          content: spec,
+          theme: "default",
+          layout: "modern",
+          showSidebar: true,
+        });
+      })();
     </script>
   </body>
 </html>
