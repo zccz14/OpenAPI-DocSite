@@ -18,9 +18,14 @@
     <div id="app"></div>
     <script>
       const url = new URL(document.location.href);
-      const yamlUrl = url.searchParams.get('url');
+      const specUrl = url.searchParams.get('url');
+      const spec = await fetch(specUrl).then(x => x.text());
+      console.info('Spec Loaded', spec);
+      // const serverUrl = url.searchParams.get('server');
+      
       Scalar.createApiReference("#app", {
-        url: yamlUrl,
+        // url: specUrl,
+        content: spec,
         theme: "default",
         layout: "modern",
         showSidebar: true,
