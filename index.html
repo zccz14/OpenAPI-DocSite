@@ -12,26 +12,106 @@
         height: 100%;
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
-    <script src="https://cdn.jsdelivr.net/npm/js-yaml"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.52.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.1"></script>
   </head>
   <body>
     <div id="app"></div>
     <script>
+      function renderError(message) {
+        const app = document.getElementById('app');
+        app.textContent = message;
+        app.style.display = 'grid';
+        app.style.placeItems = 'center';
+        app.style.padding = '24px';
+        app.style.boxSizing = 'border-box';
+        app.style.fontFamily = 'system-ui, sans-serif';
+      }
+
+      function parseSpecContent(specText) {
+        try {
+          return JSON.parse(specText);
+        } catch (jsonError) {
+          if (!globalThis.jsyaml) {
+            console.error('js-yaml CDN global is unavailable.', { jsonError });
+            return null;
+          }
+
+          try {
+            return jsyaml.load(specText);
+          } catch (yamlError) {
+            console.error('Failed to parse spec as JSON or YAML.', {
+              jsonError,
+              yamlError,
+            });
+            return null;
+          }
+        }
+      }
+
       (async function () {
         const url = new URL(document.location.href);
         const specUrl = url.searchParams.get('url');
-        const spec = await fetch(specUrl).then(x => x.text());
-        console.info('Spec Loaded', spec);
-        // const serverUrl = url.searchParams.get('server');
+        const serverUrl = url.searchParams.get('server');
+        let specText;
+
+        if (!specUrl) {
+          console.error('Missing required url query parameter.');
+          renderError('Unable to load API reference. Check the spec URL and format.');
+          return;
+        }
+
+        if (!globalThis.Scalar) {
+          console.error('Scalar CDN global is unavailable.');
+          renderError('Unable to load API reference. Check the spec URL and format.');
+          return;
+        }
+
+        try {
+          const response = await fetch(specUrl);
+
+          if (!response.ok) {
+            console.error('Failed to fetch spec: received non-OK response.', {
+              specUrl,
+              status: response.status,
+              statusText: response.statusText,
+            });
+            renderError('Unable to load API reference. Check the spec URL and format.');
+            return;
+          }
+
+          specText = await response.text();
+        } catch (error) {
+          console.error('Failed to fetch spec from url query parameter.', {
+            specUrl,
+            error,
+          });
+          renderError('Unable to load API reference. Check the spec URL and format.');
+          return;
+        }
+
+        const spec = parseSpecContent(specText);
+
+        if (!spec) {
+          renderError('Unable to load API reference. Check the spec URL and format.');
+          return;
+        }
+
+        if (url.searchParams.has('server')) {
+          spec.servers = [{ url: serverUrl }];
+        }
         
-        Scalar.createApiReference("#app", {
-          // url: specUrl,
-          content: spec,
-          theme: "default",
-          layout: "modern",
-          showSidebar: true,
-        });
+        try {
+          Scalar.createApiReference("#app", {
+            content: spec,
+            theme: "default",
+            layout: "modern",
+            showSidebar: true,
+          });
+        } catch (error) {
+          console.error('Failed to render API reference.', { error });
+          renderError('Unable to load API reference. Check the spec URL and format.');
+        }
       })();
     </script>
   </body>
